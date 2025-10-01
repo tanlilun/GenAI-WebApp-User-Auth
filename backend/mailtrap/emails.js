@@ -32,10 +32,14 @@ export const sendWelcomeEmail = async (email, name) => {
 		const response = await mailtrapClient.send({
 			from: sender,
 			to: recipient,
-			template_uuid: "e65925d1-a9d1-4a40-ae7c-d92b37d593df",
+			template_uuid: "82dddf4b-ebe2-4f70-b7cb-4920caaad2af",
 			template_variables: {
-				company_info_name: "Auth Company",
+				company_info_name: "Faculty Technologies Sdn. Bhd.",
 				name: name,
+				company_info_address: "22-01, Menara MBMR, 1, Jln Syed Putra",
+				company_info_city: "Kuala Lumpur",
+				company_info_zip_code: "58000",
+				company_info_country: "Malaysia",
 			},
 		});
 
