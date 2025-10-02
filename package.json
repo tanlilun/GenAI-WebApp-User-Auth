@@ -4,8 +4,8 @@
 	"description": "",
 	"main": "backend/index.js",
 	"scripts": {
-		"dev": "NODE_ENV=development nodemon backend/index.js",
-		"start": "NODE_ENV=production node backend/index.js",
+		"dev": "npm run dev --prefix frontend",
+		"start": "node backend/index.js",
 		"build": "npm install && npm install --prefix frontend && npm run build --prefix frontend"
 	},
 	"keywords": [],
@@ -13,6 +13,7 @@
 	"type": "module",
 	"license": "ISC",
 	"dependencies": {
+		"@radix-ui/react-slot": "^1.2.3",
 		"bcryptjs": "^2.4.3",
 		"cookie-parser": "^1.4.6",
 		"cors": "^2.8.5",
