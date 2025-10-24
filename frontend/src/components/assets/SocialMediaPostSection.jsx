@@ -10,9 +10,7 @@ import LinkedInPreview from "./previews/LinkedInPreview";
 import InstagramPreview from "./previews/InstagramPreview";
 
 export default function SocialMediaPostSection({ assetSet, onUpdateAssetSet }) {
-  const { user, setUser } = useAuthStore();
-
-  const selectedImage = assetSet.images?.find(img => img.selected);
+  const selectedImage = assetSet.images;
   const selectedImageUrl = selectedImage?.url || "";
 
   const [captions, setCaptions] = useState({
@@ -22,18 +20,19 @@ export default function SocialMediaPostSection({ assetSet, onUpdateAssetSet }) {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [copied, setCopied] = useState(null);
-
-  React.useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const currentUser = await user;
-        setUser(currentUser);
-      } catch (error) {
-        console.log("User not authenticated");
-      }
-    };
-    loadUser();
-  }, []);
+  const { user, setUser } = useAuthStore();
+  
+    React.useEffect(() => {
+      const loadUser = async () => {
+        try {
+          const currentUser = await user;
+          setUser(currentUser);
+        } catch (error) {
+          console.log("User not authenticated");
+        }
+      };
+      loadUser();
+    }, []);
 
   const handleCaptionChange = (platform, value) => {
     setCaptions(prev => ({ ...prev, [platform]: value }));
@@ -53,7 +52,7 @@ export default function SocialMediaPostSection({ assetSet, onUpdateAssetSet }) {
       };
   
       // Save to backend
-      await AssetSet.update(assetSet.id, updatedAssetSet);
+      await AssetSet.getState().update(assetSet._id, updatedAssetSet);
   
       // Notify parent with the updated version
       onUpdateAssetSet(updatedAssetSet);

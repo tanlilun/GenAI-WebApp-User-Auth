@@ -7,6 +7,11 @@ const assetSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    campaign_id: { 
+      type: mongoose.Schema.Types.ObjectId, 
+      ref: 'Campaign', 
+      required: true,
+    },
     captions: {
       facebook: { type: String, default: "" },
       instagram: { type: String, default: "" },

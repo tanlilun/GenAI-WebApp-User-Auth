@@ -3,8 +3,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Heart, MessageCircle, Send, Bookmark, MoreHorizontal } from 'lucide-react';
 
 export default function InstagramPreview({ user, caption, videoUrl }) {
-  const userName = user?.full_name?.split(' ')[0].toLowerCase() || "yourusername";
-  const userInitials = (user?.full_name || "Y").charAt(0);
+  const userName = user?.name?.split(' ')[0].toLowerCase() || "yourusername";
+  const userInitials = (user?.name || "Y").charAt(0);
 
   return (
     <div className="bg-white border rounded-xl w-full max-w-[340px] mx-auto overflow-hidden font-sans">

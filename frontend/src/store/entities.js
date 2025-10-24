@@ -6,171 +6,216 @@
 
 // @/api/entities/Campaign.js
 
+import { create } from "zustand";
+
 import axios from "axios";
 
 axios.defaults.withCredentials = true;
 
 const API_BASE = import.meta.env.MODE === "development" ? "http://localhost:5000/api/campaign" : "/api/campaign";
 
+export const Campaign = create((set) => ({
+  campaigns: [],
+  selectedCampaign: null,
+  isLoading: false,
+  error: null,
+  message: null,
 
-export const Campaign = {
-  async list(sort = '') {
+  // List all campaigns
+  list: async (sort = '') => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${API_BASE}/`);
-      if (!res.ok) throw new Error('Failed to fetch campaigns');
-      return await res.data;
-    } catch (error) {
-      console.error('Error listing campaigns:', error.message);
-      return []; // fallback to empty list
-    }
-  },
-
-  async getById(id) {
-    try {
-      const res = await fetch(`${API_BASE}/${id}`);
-      if (!res.ok) throw new Error('Failed to fetch campaign');
-      return await res.json();
-    } catch (error) {
-      console.error(`Error fetching campaign ${id}:`, error.message);
-      return null;
-    }
-  },
-
-  async create(data) {
-    try {
-      const res = await fetch(API_BASE, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const res = await axios.get(`${API_BASE}`, {
+        params: sort ? { sort } : {},
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to create campaign');
-      }
-      return await res.json();
+      set({ campaigns: res.data, isLoading: false });
+      return res.data;
     } catch (error) {
-      console.error('Error creating campaign:', error.message);
+      const msg = error.response?.data?.message || "Error fetching campaigns";
+      set({ error: msg, isLoading: false });
+      return [];
+    }
+  },
+
+  // Get campaign by ID
+  getById: async (id) => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await axios.get(`${API_BASE}/${id}`);
+      set({ selectedCampaign: res.data, isLoading: false });
+      return res.data;
+    } catch (error) {
+      const msg = error.response?.data?.message || "Error fetching campaign";
+      set({ error: msg, isLoading: false });
       return null;
     }
   },
 
-  async update(id, data) {
+  // Create campaign
+  create: async (data) => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE}/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const res = await axios.post(API_BASE, data, {
+        headers: { "Content-Type": "application/json" },
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to update campaign');
-      }
-      return await res.json();
+      set((state) => ({
+        campaigns: [...state.campaigns, res.data],
+        message: "Campaign created successfully",
+        isLoading: false,
+      }));
+      return res.data;
     } catch (error) {
-      console.error(`Error updating campaign ${id}:`, error.message);
+      const msg = error.response?.data?.message || "Error creating campaign";
+      set({ error: msg, isLoading: false });
       return null;
     }
   },
 
-  async delete(id) {
+  // Update campaign
+  update: async (id, data) => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${API_BASE}/${id}`, {
-        method: 'DELETE',
+      const res = await axios.put(`${API_BASE}/${id}`, data, {
+        headers: { "Content-Type": "application/json" },
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to delete campaign');
-      }
-      return await res.json();
+      set((state) => ({
+        campaigns: state.campaigns.map((c) =>
+          c._id === id ? res.data : c
+        ),
+        message: "Campaign updated successfully",
+        isLoading: false,
+      }));
+      return res.data;
     } catch (error) {
-      console.error(`Error deleting campaign ${id}:`, error.message);
+      const msg = error.response?.data?.message || "Error updating campaign";
+      set({ error: msg, isLoading: false });
       return null;
     }
   },
-};
+
+  // Delete campaign
+  delete: async (id) => {
+    set({ isLoading: true, error: null });
+    try {
+      const res = await axios.delete(`${API_BASE}/${id}`);
+      set((state) => ({
+        campaigns: state.campaigns.filter((c) => c._id !== id),
+        message: "Campaign deleted successfully",
+        isLoading: false,
+      }));
+      return res.data;
+    } catch (error) {
+      const msg = error.response?.data?.message || "Error deleting campaign";
+      set({ error: msg, isLoading: false });
+      return null;
+    }
+  },
+}));
+
 
 // frontend/api/Asset.js (or wherever your front-end code resides)
 
 const Asset_API = import.meta.env.MODE === "development" ? "http://localhost:5000/api/asset" : "/api/asset";
 
-export const AssetSet = {
-  async list(sort = '') {
+export const AssetSet = create((set, get) => ({
+  assets: [],
+  selectedAsset: null,
+  isLoading: false,
+  error: null,
+  message: null,
+
+  // List all assets (with optional sort)
+  list: async (sort = '') => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await axios.get(`${Asset_API}/`);
-      if (!res.ok) throw new Error('Failed to fetch assets');
-      return await res.json();
+      const res = await axios.get(Asset_API, { params: sort ? { sort } : {} });
+      set({ assets: res.data, isLoading: false });
+      return res.data;
     } catch (error) {
-      console.error('Error listing assets:', error.message);
+      console.error("Error listing assets:", error.response?.data || error.message);
+      set({ error: error.response?.data?.message || "Error fetching assets", isLoading: false });
       return [];
     }
   },
 
-  async getById(id) {
+  // Get asset by ID
+  getById: async (id) => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${Asset_API}/${id}`);
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to fetch asset');
-      }
-      return await res.json();
+      const res = await axios.get(`${Asset_API}/${id}`);
+      set({ selectedAsset: res.data, isLoading: false });
+      return res.data;
     } catch (error) {
-      console.error(`Error fetching asset ${id}:`, error.message);
+      console.error("Error fetching asset:", error.response?.data || error.message);
+      set({ error: error.response?.data?.message || "Error fetching asset", isLoading: false });
       return null;
     }
   },
 
-  async create(data) {
+  // Create a new asset
+  create: async (data) => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await fetch(Asset_API, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const res = await axios.post(Asset_API, data, {
+        headers: { "Content-Type": "application/json" },
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to create asset');
-      }
-      return await res.json();
+      set((state) => ({
+        assets: [...state.assets, res.data],
+        isLoading: false,
+      }));
+      return res.data;
     } catch (error) {
-      console.error('Error creating asset:', error.message);
+      console.error("Error creating asset:", error.response?.data || error.message);
+      set({
+        error: error.response?.data?.message || "Error creating asset",
+        isLoading: false,
+      });
       return null;
     }
   },
 
-  async update(id, data) {
+  // Update asset
+  update: async (id, data) => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${Asset_API}/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
+      const res = await axios.put(`${Asset_API}/${id}`, data, {
+        headers: { "Content-Type": "application/json" },
       });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to update asset');
-      }
-      return await res.json();
+      set((state) => ({
+        assets: state.assets.map((a) => (a._id === id ? res.data : a)),
+        isLoading: false,
+      }));
+      return res.data;
     } catch (error) {
-      console.error(`Error updating asset ${id}:`, error.message);
+      console.error("Error updating asset:", error.response?.data || error.message);
+      set({
+        error: error.response?.data?.message || "Error updating asset",
+        isLoading: false,
+      });
       return null;
     }
   },
 
-  async delete(id) {
+  // Delete asset
+  delete: async (id) => {
+    set({ isLoading: true, error: null });
     try {
-      const res = await fetch(`${Asset_API}/${id}`, {
-        method: 'DELETE',
-      });
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to delete asset');
-      }
-      return await res.json();
+      const res = await axios.delete(`${Asset_API}/${id}`);
+      set((state) => ({
+        assets: state.assets.filter((a) => a._id !== id),
+        isLoading: false,
+      }));
+      return res.data;
     } catch (error) {
-      console.error(`Error deleting asset ${id}:`, error.message);
+      console.error("Error deleting asset:", error.response?.data || error.message);
+      set({
+        error: error.response?.data?.message || "Error deleting asset",
+        isLoading: false,
+      });
       return null;
     }
   },
-};
+}));
 
   
 // auth sdk:

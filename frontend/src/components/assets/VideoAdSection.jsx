@@ -22,7 +22,7 @@ export default function VideoAdSection({ assetSet, onUpdateAssetSet }) {
       };
 
       // Save to API
-      await AssetSet.update(assetSet.id, {
+      await AssetSet.getState().update(assetSet._id, {
         video_ad: updatedVideoAd,
       });
 

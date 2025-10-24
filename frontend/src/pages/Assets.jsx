@@ -30,7 +30,6 @@ export default function Assets() {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
   const [assetSets, setAssetSets] = useState({}); 
-  const [selectedImages, setSelectedImages] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -46,8 +45,8 @@ export default function Assets() {
     setIsLoading(true);
     try {
       const [campaignData, assetData] = await Promise.all([
-        Campaign.list('-created_date'),
-        AssetSet.list('-created_date')
+        Campaign.getState().list('createdAt'),
+        AssetSet.getState().list('createdAt')
       ]);
       setCampaigns(campaignData);
       
@@ -57,58 +56,24 @@ export default function Assets() {
       }, {});
       setAssetSets(assetsMap);
 
-      const initialSelectedImages = assetData.reduce((acc, asset) => {
-        const selected = asset.images?.find(img => img.selected);
-        if (selected) {
-          acc[asset.id] = selected.url;
-        }
-        return acc;
-      }, {});
-      setSelectedImages(initialSelectedImages);
-
     } catch (error) {
       console.error("Error loading data:", error);
     }
     setIsLoading(false);
   };
 
-  const handleSelectImage = async (assetSetId, imageIndex) => {
-    const assetSet = Object.values(assetSets).find(asset => asset.id === assetSetId);
-    if (!assetSet) return;
-    
-    const imageUrl = assetSet.images[imageIndex].url;
-    setSelectedImages(prev => ({ ...prev, [assetSetId]: imageUrl }));
-
-    const updatedImages = assetSet.images.map((img, i) => ({
-      ...img,
-      selected: i === imageIndex
-    }));
-    await AssetSet.update(assetSetId, { images: updatedImages });
-  };
-
   const handleDeleteCampaign = async (campaign) => {
     try {
       // Delete associated asset set first
-      const assetSet = assetSets[campaign.id];
+      const assetSet = assetSets[campaign._id];
       if (assetSet) {
-        await AssetSet.delete(assetSet.id);
+        await AssetSet.getState().delete(assetSet._id);
       }
-      
-      // Delete the campaign
-      await Campaign.delete(campaign.id);
-      
-      // Update local state
-      setCampaigns(prev => prev.filter(c => c.id !== campaign.id));
+      await Campaign.getState().delete(campaign._id);
+      setCampaigns(prev => prev.filter(c => c._id !== campaign._id));
       setAssetSets(prev => {
         const updated = { ...prev };
-        delete updated[campaign.id];
-        return updated;
-      });
-      setSelectedImages(prev => {
-        const updated = { ...prev };
-        if (assetSet) {
-          delete updated[assetSet.id];
-        }
+        delete updated[campaign._id];
         return updated;
       });
       
@@ -141,7 +106,7 @@ export default function Assets() {
       campaign.theme.toLowerCase().includes(searchQuery.toLowerCase());
     
     const matchesDate = !dateFilter || 
-      format(new Date(campaign.created_date), 'yyyy-MM-dd') === dateFilter;
+      format(new Date(campaign.createdAt), 'yyyy-MM-dd') === dateFilter;
     
     return matchesSearch && matchesDate;
   });
@@ -281,8 +246,8 @@ export default function Assets() {
               </motion.div>
             ) : (
               filteredCampaigns.map((campaign) => {
-                const assetSet = assetSets[campaign.id];
-                const isOpen = openAccordions.has(campaign.id);
+                const assetSet = assetSets[campaign._id];
+                const isOpen = openAccordions.has(campaign._id);
                 
                 return (
                   <motion.div
@@ -291,7 +256,7 @@ export default function Assets() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                   >
-                    <Collapsible open={isOpen} onOpenChange={() => toggleAccordion(campaign.id)}>
+                    <Collapsible open={isOpen} onOpenChange={() => toggleAccordion(campaign._id)}>
                       <Card className="border-none shadow-lg bg-white/80 backdrop-blur-sm overflow-hidden">
                         <CollapsibleTrigger asChild>
                           <CardHeader className="cursor-pointer hover:bg-gray-50/80 transition-colors duration-200 p-6">
@@ -308,7 +273,7 @@ export default function Assets() {
                                     </Badge>
                                     <Badge variant="outline" className="text-gray-600">
                                       <Calendar className="w-3 h-3 mr-1" />
-                                      {format(new Date(campaign.created_date), 'MMM d, yyyy')}
+                                      {format(new Date(campaign.createdAt), 'MMM d, yyyy')}
                                     </Badge>
                                   </div>
                                   {campaign.target_audience && (

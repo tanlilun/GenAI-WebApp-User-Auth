@@ -64,7 +64,7 @@ export default function Generate() {
   
     try {
       // 1. Create campaign (starts generation)
-      const campaign = await Campaign.create({
+      const campaign = await Campaign.getState().create({
         name: formData.name,
         bank_product: formData.bank_product,
         theme: formData.theme,
@@ -89,27 +89,27 @@ export default function Generate() {
   
       // 2. Generate captions
       setGenerationStep("Generating social media captions...");
-      await Campaign.update(campaign.id, { captions_status: "generating" });
+      await Campaign.getState().update(campaign._id, { captions_status: "generating" });
       // Backend generates captions asynchronously or synchronously
-      await waitForStatus(campaign.id, "captions_status", "completed");
+      await waitForStatus(campaign._id, "captions_status", "completed");
       setGenerationStep("Social media captions generated.");
   
       // 3. Generate newsletter content
       setGenerationStep("Creating newsletter content...");
-      await Campaign.update(campaign.id, { newsletter_status: "generating" });
-      await waitForStatus(campaign.id, "newsletter_status", "completed");
+      await Campaign.getState().update(campaign._id, { newsletter_status: "generating" });
+      await waitForStatus(campaign._id, "newsletter_status", "completed");
       setGenerationStep("Newsletter content created.");
   
       // 4. Generate images
       setGenerationStep("Generating relevant image...");
-      await Campaign.update(campaign.id, { images_status: "generating" });
-      await waitForStatus(campaign.id, "images_status", "completed");
+      await Campaign.getState().update(campaign._id, { images_status: "generating" });
+      await waitForStatus(campaign._id, "images_status", "completed");
       setGenerationStep("Images generated.");
   
       // 5. Generate ads copy
       setGenerationStep("Creating Ad Banners...");
       // await Campaign.update(campaign.id, { ads_status: "generating" });
-      await Campaign.update(campaign.id, {
+      await Campaign.getState().update(campaign._id, {
         ads_leaderboard_1_status: "generating",
         ads_leaderboard_2_status: "generating",
         ads_leaderboard_3_status: "generating",
@@ -134,19 +134,19 @@ export default function Generate() {
       ];
       
       for (let field of adFields) {
-        await waitForStatus(campaign.id, field, "completed");
+        await waitForStatus(campaign._id, field, "completed");
       }
       // await waitForStatus(campaign.id, "ads_status", "completed");
       setGenerationStep("Ad Banners ready.");
   
       // 6. Generate video script
       setGenerationStep("Creating short video...");
-      await Campaign.update(campaign.id, { video_status: "generating" });
-      await waitForStatus(campaign.id, "video_status", "completed");
+      await Campaign.getState().update(campaign._id, { video_status: "generating" });
+      await waitForStatus(campaign._id, "video_status", "completed");
       setGenerationStep("Short video created.");
   
       // 7. Mark campaign complete
-      await Campaign.update(campaign.id, { status: "completed" });
+      await Campaign.getState().update(campaign._id, { status: "completed" });
       setGenerationStep("All assets generated!");
   
       // 8. Fetch all assets

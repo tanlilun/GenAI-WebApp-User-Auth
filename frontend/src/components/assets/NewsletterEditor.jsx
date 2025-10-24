@@ -8,7 +8,7 @@ import { Copy, Save, Mail, Check } from "lucide-react";
 
 export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
   const newsletter = assetSet.newsletter || {};
-  const selectedImage = assetSet.images?.find(img => img.selected);
+  const selectedImage = assetSet.images;
   const selectedImageUrl = selectedImage?.url || "";
 
   const [subject, setSubject] = useState(newsletter.subject || "");
@@ -94,7 +94,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
         body,
       };
 
-      await AssetSet.update(assetSet.id, {
+      await AssetSet.getState().update(assetSet._id, {
         newsletter: updatedNewsletter,
       });
 

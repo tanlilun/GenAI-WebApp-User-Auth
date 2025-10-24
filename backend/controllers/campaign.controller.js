@@ -38,22 +38,11 @@ export const CampaignController = {
       campaign.user = req.userId;
       await campaign.save();
 
-      // Webhook trigger
-      const webhookUrl = process.env.WEBHOOK_URL || 'https://rapidlab.app.n8n.cloud/webhook/generator';
-      try {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(campaign),
-        });
-      } catch (err) {
-        console.error('Webhook error:', err.message);
-      }
-
       // Create associated asset
+      let asset;
       try {
-        await Asset.create({
-          _id: campaign._id,
+        asset = await Asset.create({
+          campaign_id: campaign._id,
           user: req.userId,
           captions: {},
           images: {},
@@ -65,7 +54,23 @@ export const CampaignController = {
         console.error('Asset creation error:', err.message);
       }
 
-      res.status(201).json(campaign);
+      res.status(201).json({ campaign, asset });
+
+      // Webhook trigger
+      const webhookUrl = process.env.WEBHOOK_URL || 'https://rapidlab.app.n8n.cloud/webhook/generator';
+      try {
+        await fetch(webhookUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            campaign,
+            asset
+          }),
+        });
+      } catch (err) {
+        console.error('Webhook error:', err.message);
+      }
+      
     } catch (err) {
       console.error(err.message);
       res.status(500).json({ message: 'Error creating campaign' });

@@ -10,7 +10,7 @@ const ActionButton = ({ icon: Icon, label }) => (
 );
 
 export default function LinkedInPreview({ user, caption, imageUrl }) {
-  const userName = user?.full_name || "Your Name";
+  const userName = user?.name || "Your Name";
   const userJob = user?.job_title || "Your Job Title";
   const userInitials = userName.split(' ').map(n => n[0]).join('') || 'U';
 

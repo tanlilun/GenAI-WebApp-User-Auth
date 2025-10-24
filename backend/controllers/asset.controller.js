@@ -37,8 +37,8 @@ export const AssetController = {
       data.user = req.userId;
 
       const assetData = {
-        _id: data.campaign_id,
         user: req.userId,
+        campaign_id: data.campaign_id,
         captions: {
           facebook: data.captions?.facebook || '',
           instagram: data.captions?.instagram || '',

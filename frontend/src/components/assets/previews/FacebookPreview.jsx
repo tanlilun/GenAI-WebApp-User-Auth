@@ -10,7 +10,7 @@ const ActionButton = ({ icon: Icon, label }) => (
 );
 
 export default function FacebookPreview({ user, caption, imageUrl }) {
-  const userName = user?.full_name || "Your Name";
+  const userName = user?.name || "Your Name";
   const userInitials = userName.split(' ').map(n => n[0]).join('') || 'U';
 
   return (
