@@ -1,5 +1,6 @@
 import { Campaign } from '../models/campaign.model.js';
 import { Asset } from '../models/asset.model.js';
+import { User } from '../models/user.model.js';
 
 import dotenv from "dotenv";
 
@@ -54,6 +55,9 @@ export const CampaignController = {
         console.error('Asset creation error:', err.message);
       }
 
+      const user = await User.findById(req.userId).select('email');
+      const userEmail = user?.email || 'Unknown';
+
       res.status(201).json({ campaign, asset });
 
       // Webhook trigger
@@ -64,7 +68,11 @@ export const CampaignController = {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             campaign,
-            asset
+            asset,
+            user: {
+              id: req.userId,
+              email: userEmail
+            }
           }),
         });
       } catch (err) {

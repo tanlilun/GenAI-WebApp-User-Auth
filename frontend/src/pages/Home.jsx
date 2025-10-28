@@ -67,7 +67,7 @@ export default function Home() {
 		>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/30">
         {/* Hero Section */}
-        <section className="relative px-6 md:px-8 pt-12 pb-20">
+        <section className="relative px-6 md:px-8 pt-12 pb-20 min-h-screen">
           <div className="absolute inset-0 bg-gradient-to-r from-purple-600/5 via-pink-600/5 to-orange-600/5" />
           <div className="relative max-w-6xl mx-auto text-center">
             <div className="mb-8">
@@ -107,43 +107,9 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
-
-            {/* Features Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-              {features.map((feature, index) => (
-                <Card key={index} className="border-none shadow-lg bg-white/70 backdrop-blur-sm hover:shadow-xl transition-all duration-300 group">
-                  <CardContent className="p-6 text-center">
-                    <div className={`w-16 h-16 mx-auto mb-4 bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}>
-                      <feature.icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
-                    <p className="text-gray-600 text-sm">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Stats Section */}
-            <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-gray-200/60">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div className="text-center">
-                  <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">10+</div>
-                  <div className="text-gray-600">Asset Types Generated</div>
-                </div>
-                <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">5x</div>
-                <div className="text-gray-600">Faster Than Manual</div>
-              </div>
-              <div className="text-center">
-                <div className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">95%</div>
-                <div className="text-gray-600">Time Saved</div>
-              </div>
-            </div>
           </div>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
     </motion.div>
-    
   );
 }
