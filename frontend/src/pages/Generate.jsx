@@ -30,7 +30,7 @@ const AUDIENCE_OPTIONS = [
 ];
 
 const CAMPAIGN_THEMES = [
-  "Family",
+  "Wellness",
   "Travel Rewards",
   "Dining Experience",
   "Retail & Entertainment",
