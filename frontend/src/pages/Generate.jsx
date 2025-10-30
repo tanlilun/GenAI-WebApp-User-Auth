@@ -81,20 +81,29 @@ export default function Generate() {
     <div className="space-y-2">
       <Label className="text-base font-medium">{label}</Label>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {options.map((option) => (
-          <button
-            key={option}
-            type="button"
-            onClick={() => setFormData({ ...formData, [field]: option })}
-            className={`px-3 py-2 md:py-3 rounded-lg text-sm md:text-base font-medium border transition-all duration-200 ${
-              formData[field] === option
-                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md"
-                : "bg-white hover:bg-purple-50 border-gray-300 text-gray-700"
-            }`}
-          >
-            {option}
-          </button>
-        ))}
+        {options.map((option) => {
+          const isDisabled = label === "Bank Product" && option !== "Credit Card";
+
+          return (
+            <button
+              key={option}
+              type="button"
+              disabled={isDisabled}
+              onClick={() =>
+                !isDisabled && setFormData({ ...formData, [field]: option })
+              }
+              className={`px-3 py-2 md:py-3 rounded-lg text-sm md:text-base font-medium border transition-all duration-200 ${
+                formData[field] === option
+                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md"
+                  : isDisabled
+                  ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
+                  : "bg-white hover:bg-purple-50 border-gray-300 text-gray-700"
+              }`}
+            >
+              {option}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
