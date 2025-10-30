@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { createPageUrl } from "@/utils";
-import { useAuthStore } from "@/store/authStore";
+import { useAuthStore } from "../store/authStore";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
@@ -18,13 +18,12 @@ import {
 } from "lucide-react";
 
 export default function Home() {
-  const { user, setUser } = useAuthStore();
+  const { user, isAuthenticated } = useAuthStore();
 
   React.useEffect(() => {
     const loadUser = async () => {
       try {
-        const currentUser = await user;
-        setUser(currentUser);
+        await isAuthenticated;
       } catch (error) {
         console.log("User not authenticated");
       }

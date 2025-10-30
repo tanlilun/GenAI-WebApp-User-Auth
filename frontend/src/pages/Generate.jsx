@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  ArrowLeft,
-  Sparkles,
-  Loader2,
-  TrendingUp,
-} from "lucide-react";
+import { Sparkles, ArrowLeft, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
 const BANK_PRODUCT = [
@@ -45,19 +39,15 @@ export default function Generate() {
     theme: "",
     description: "",
   });
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generationStep, setGenerationStep] = useState("");
+  const [isSubmitted, setIsSubmitted] = useState(false);
 
   async function generateAssets() {
     if (!formData.name || !formData.theme || !formData.target_audience) {
       return;
     }
 
-    setIsGenerating(true);
-    setGenerationStep("Creating campaign...");
-
     try {
-      const campaign = await Campaign.getState().create({
+      await Campaign.getState().create({
         name: formData.name,
         bank_product: formData.bank_product,
         theme: formData.theme,
@@ -79,84 +69,12 @@ export default function Generate() {
         status: "generating",
       });
 
-      setGenerationStep("Generating social media captions...");
-      await Campaign.getState().update(campaign._id, {
-        captions_status: "generating",
-      });
-      await waitForStatus(campaign._id, "captions_status", "completed");
-
-      setGenerationStep("Creating newsletter content...");
-      await Campaign.getState().update(campaign._id, {
-        newsletter_status: "generating",
-      });
-      await waitForStatus(campaign._id, "newsletter_status", "completed");
-
-      setGenerationStep("Generating relevant image...");
-      await Campaign.getState().update(campaign._id, {
-        images_status: "generating",
-      });
-      await waitForStatus(campaign._id, "images_status", "completed");
-
-      setGenerationStep("Creating Ad Banners...");
-      const adFields = [
-        "ads_leaderboard_1_status",
-        "ads_leaderboard_2_status",
-        "ads_leaderboard_3_status",
-        "ads_billboard_1_status",
-        "ads_billboard_2_status",
-        "ads_billboard_3_status",
-        "ads_half_page_1_status",
-        "ads_half_page_2_status",
-        "ads_half_page_3_status",
-      ];
-
-      await Campaign.getState().update(campaign._id, Object.fromEntries(adFields.map(f => [f, "generating"])));
-      for (let field of adFields) {
-        await waitForStatus(campaign._id, field, "completed");
-      }
-
-      setGenerationStep("Creating short video...");
-      await Campaign.getState().update(campaign._id, {
-        video_status: "generating",
-      });
-      await waitForStatus(campaign._id, "video_status", "completed");
-
-      await Campaign.getState().update(campaign._id, { status: "completed" });
-      setGenerationStep("All assets generated!");
-      await AssetSet.list("-created_date");
-
-      navigate(createPageUrl("Assets"));
+      setIsSubmitted(true);
+      await AssetSet.getState().list("createdAt");
     } catch (error) {
-      console.error("Error generating assets:", error);
-      setGenerationStep(error.message || "Error occurred. Please try again.");
-    } finally {
-      setIsGenerating(false);
-      navigate(createPageUrl("Assets"));
+      console.error("Error submitting generation request:", error);
+      alert("Failed to submit generation request. Please try again.");
     }
-  }
-
-  function waitForStatus(campaignId, statusField, expectedStatus, timeout = 120000, interval = 2000) {
-    const startTime = Date.now();
-    return new Promise((resolve, reject) => {
-      const timer = setInterval(async () => {
-        try {
-          const campaign = await Campaign.getById(campaignId);
-          if (campaign[statusField] === expectedStatus) {
-            clearInterval(timer);
-            resolve();
-          } else if (campaign[statusField] === "error") {
-            clearInterval(timer);
-            reject(new Error(`Error in ${statusField.replace("_status", "")} generation.`));
-          } else if (Date.now() - startTime > timeout) {
-            clearInterval(timer);
-            reject(new Error(`${statusField.replace("_status", "")} generation timed out.`));
-          }
-        } catch (err) {
-          clearInterval(timer);
-          reject(err);
-        }
-      }, interval);
-    });
   }
 
   const renderSelectButtons = (label, options, field) => (
@@ -203,8 +121,12 @@ export default function Generate() {
           </div>
         </div>
 
-        {!isGenerating ? (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+        {!isSubmitted ? (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
             <Card className="border-none shadow-xl bg-white/80 backdrop-blur-sm">
               <CardHeader className="pb-6">
                 <CardTitle className="flex items-center gap-2 text-2xl">
@@ -213,7 +135,6 @@ export default function Generate() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Campaign Name */}
                 <div className="space-y-2">
                   <Label htmlFor="name" className="text-base font-medium">
                     Campaign Name
@@ -222,7 +143,9 @@ export default function Generate() {
                     id="name"
                     placeholder="Enter your campaign name"
                     value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
                     className="h-12 text-base"
                   />
                 </div>
@@ -231,7 +154,6 @@ export default function Generate() {
                 {renderSelectButtons("Target Audience", AUDIENCE_OPTIONS, "target_audience")}
                 {renderSelectButtons("Campaign Theme", CAMPAIGN_THEMES, "theme")}
 
-                {/* Generate Button */}
                 <div className="pt-6">
                   <Button
                     onClick={generateAssets}
@@ -247,19 +169,24 @@ export default function Generate() {
             </Card>
           </motion.div>
         ) : (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-20">
-            <Card className="w-full max-w-md border-none shadow-xl bg-white/80 backdrop-blur-sm">
-              <CardContent className="p-8 text-center">
-                <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                  <Loader2 className="w-10 h-10 text-white animate-spin" />
-                </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Generating Your Assets</h3>
-                <p className="text-gray-600 mb-4">{generationStep}</p>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full w-3/4 transition-all duration-300"></div>
-                </div>
-                <p className="text-sm text-gray-500 mt-4">This may take 30–60 seconds</p>
-              </CardContent>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center py-20"
+          >
+            <Card className="w-full max-w-md border-none shadow-xl bg-white/80 backdrop-blur-sm text-center p-8">
+              <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                Request Submitted
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Your generation request has been submitted. Click below to view your assets.
+              </p>
+              <Button
+                onClick={() => navigate(createPageUrl("Assets"))}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-6 py-3 rounded-lg text-lg"
+              >
+                Go to Assets
+              </Button>
             </Card>
           </motion.div>
         )}

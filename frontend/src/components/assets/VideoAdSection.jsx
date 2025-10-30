@@ -1,80 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AssetSet } from "../../store/entities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Save, Play, Video } from "lucide-react";
+import { Download, Copy, Check, Play, Video } from "lucide-react";
 import banklogo from "../img/UnionBank-logo.png";
 import visalogo from "../img/VISA-logo.png";
 
 export default function VideoAdSection({ assetSet, onUpdateAssetSet }) {
   const videoAd = assetSet.video_ad || {};
   const [overlayText, setOverlayText] = useState(videoAd.overlay_text || "");
-  const [isSaving, setIsSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
+  const [showSaved, setShowSaved] = useState(false);
 
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      const updatedVideoAd = {
-        ...videoAd,
-        overlay_text: overlayText,
-      };
-
-      // Save to API
-      await AssetSet.getState().update(assetSet._id, {
-        video_ad: updatedVideoAd,
-      });
-
-      // Notify parent with updated assetSet
-      const updatedAssetSet = {
-        ...assetSet,
-        video_ad: updatedVideoAd,
-      };
-      if (onUpdateAssetSet) {
-        onUpdateAssetSet(updatedAssetSet);
-      }
-    } catch (error) {
-      console.error("Error saving video ad:", error);
-    } finally {
-      setIsSaving(false);
-    }
+  // Copy overlay text
+  const handleCopy = (text) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
-  const downloadVideo = async (URL, filename = "video-ad.mp4") => {
-    // if (!URL) {
-    //   console.error("No video URL provided.");
-    //   return;
-    // }
-  
-    // try {
-    //   const response = await fetch(URL);
-  
-    //   if (!response.ok) {
-    //     throw new Error(`HTTP error! Status: ${response.status}`);
-    //   }
-  
-    //   const blob = await response.blob();
-  
-    //   const link = document.createElement('a');
-    //   link.href = window.URL.createObjectURL(blob);
-    //   link.download = filename;
-  
-    //   document.body.appendChild(link);
-    //   link.click();
-    //   document.body.removeChild(link);
-  
-    //   window.URL.revokeObjectURL(link.href);
-    // } catch (error) {
-    //   console.error("Download failed:", error);
-    // }
+  // Handle input change
+  const handleOverlayChange = (value) => {
+    setOverlayText(value);
+    setIsDirty(true);
+  };
 
+  // Auto-save with debounce (2s after stop typing)
+  const saveOverlay = useCallback(async () => {
+    if (!isDirty) return;
+    try {
+      const updatedVideoAd = { ...videoAd, overlay_text: overlayText };
+      const updatedAssetSet = { ...assetSet, video_ad: updatedVideoAd };
+
+      await AssetSet.getState().update(assetSet._id, { video_ad: updatedVideoAd });
+      onUpdateAssetSet(updatedAssetSet);
+
+      setIsDirty(false);
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 3000);
+    } catch (error) {
+      console.error("Auto-save failed:", error);
+    }
+  }, [overlayText, isDirty, assetSet, onUpdateAssetSet, videoAd]);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const timeout = setTimeout(() => saveOverlay(), 2000);
+    return () => clearTimeout(timeout);
+  }, [overlayText, isDirty, saveOverlay]);
+
+  const downloadVideo = async (URL) => {
+    if (!URL) return console.error("No video URL provided.");
     try {
       window.open(URL, "_blank");
     } catch (err) {
-      console.error("Failed to open image in new tab", err);
+      console.error("Failed to open video in new tab", err);
     }
-  };  
+  };
 
   return (
     <div className="space-y-6">
@@ -82,34 +67,10 @@ export default function VideoAdSection({ assetSet, onUpdateAssetSet }) {
         <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
           <Video className="w-5 h-5 text-purple-600" />
           Short Video Ad
+          {showSaved && (
+            <span className="text-green-600 text-sm font-medium ml-2">Saved</span>
+          )}
         </h3>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={() => downloadVideo(videoAd.video_url)}
-            disabled={!videoAd.video_url}
-          >
-            <Download className="w-4 h-4 mr-2" />
-            Download Video
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            {isSaving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </>
-            )}
-          </Button>
-        </div>
       </div>
 
       <div className="max-w-2xl">
@@ -118,29 +79,59 @@ export default function VideoAdSection({ assetSet, onUpdateAssetSet }) {
             <CardTitle className="text-lg">Video Elements</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="overlay">Overlay Text</Label>
+
+            {/* Editable Overlay Text Section */}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <Label htmlFor="overlay">Overlay Text</Label>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-sm text-gray-600 hover:text-purple-600"
+                  onClick={() => handleCopy(overlayText)}
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4 mr-1 text-green-600" />
+                      Copied
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-4 h-4 mr-1" /> Copy
+                    </>
+                  )}
+                </Button>
+              </div>
               <Input
                 id="overlay"
                 value={overlayText}
-                onChange={(e) => setOverlayText(e.target.value)}
+                onChange={(e) => handleOverlayChange(e.target.value)}
                 placeholder="Text to overlay on video"
-                className="text-base"
               />
             </div>
 
-            {/* Video Preview */}
-            <div className="space-y-2">
-              <Label>Video Preview</Label>
-              <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center border-2 border-dashed border-purple-200">
+            {/* Video Preview Section */}
+            <div>
+              <div className="flex justify-between items-center mb-1">
+                <Label>Video Preview</Label>
+                {videoAd.video_url && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => downloadVideo(videoAd.video_url)}
+                    className="bg-white shadow hover:bg-gray-100 text-sm"
+                  >
+                    <Download className="w-4 h-4 mr-2 text-gray-700" />
+                    Download Video
+                  </Button>
+                )}
+              </div>
+
+              <div className="aspect-video bg-gradient-to-br from-purple-100 to-pink-100 rounded-lg flex items-center justify-center border-2 border-dashed border-purple-200 relative">
                 <div className="text-center w-full h-full">
                   {videoAd.video_url ? (
                     <div className="relative w-full h-full rounded-lg overflow-hidden">
-                      <video
-                        className="w-full h-full object-cover"
-                        controls
-                        poster=""
-                      >
+                      <video className="w-full h-full object-cover" controls>
                         <source src={videoAd.video_url} type="video/mp4" />
                         Your browser does not support the video tag.
                       </video>

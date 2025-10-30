@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { AssetSet } from "../../store/entities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Copy, Save, Mail, Check } from "lucide-react";
+import { Copy, Mail, Check } from "lucide-react";
 
 export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
   const newsletter = assetSet.newsletter || {};
@@ -22,9 +22,17 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
   const [body, setBody] = useState(newsletter.body || "");
 
   const [isSaving, setIsSaving] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState(null); // which field was copied
+  const [showSaved, setShowSaved] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
 
-  // Generate newsletter body HTML
+  // handle input
+  const handleChange = (setter) => (e) => {
+    setter(e.target.value);
+    setIsDirty(true);
+  };
+
+  // Generate email body preview
   useEffect(() => {
     const generatedHTML = `
     <!DOCTYPE html>
@@ -67,19 +75,11 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
     </html>
     `;
     setBody(generatedHTML.trim());
-  }, [
-    headline,
-    selectedImageUrl,
-    caption,
-    cta,
-    point1,
-    description1,
-    point2,
-    description2,
-  ]);
+  }, [headline, selectedImageUrl, caption, cta, point1, description1, point2, description2]);
 
-  // Save handler
-  const handleSave = async () => {
+  // Auto-save when editing stops
+  const saveNewsletter = useCallback(async () => {
+    if (!isDirty) return;
     setIsSaving(true);
     try {
       const updatedNewsletter = {
@@ -93,102 +93,120 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
         description2,
         body,
       };
-
-      await AssetSet.getState().update(assetSet._id, {
-        newsletter: updatedNewsletter,
-      });
-
-      // Optional: sync with parent
+      await AssetSet.getState().update(assetSet._id, { newsletter: updatedNewsletter });
       if (onUpdateAssetSet) {
-        const updatedAssetSet = {
-          ...assetSet,
-          newsletter: updatedNewsletter,
-        };
-        onUpdateAssetSet(updatedAssetSet);
+        onUpdateAssetSet({ ...assetSet, newsletter: updatedNewsletter });
       }
-    } catch (error) {
-      console.error("Error saving newsletter:", error);
+      setIsDirty(false);
+      setShowSaved(true);
+      setTimeout(() => setShowSaved(false), 2000);
+    } catch (err) {
+      console.error("Auto-save failed:", err);
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [isDirty, subject, headline, caption, cta, point1, description1, point2, description2, body, assetSet, onUpdateAssetSet]);
 
-  // Copy to clipboard
+  useEffect(() => {
+    if (!isDirty) return;
+    const timeout = setTimeout(saveNewsletter, 2000);
+    return () => clearTimeout(timeout);
+  }, [isDirty, saveNewsletter]);
+
+  // Copy full HTML
   const copyHtml = async () => {
     try {
       const htmlContent = `Subject: ${subject}\n\n${body}`;
       await navigator.clipboard.writeText(htmlContent);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopied("html");
+      setTimeout(() => setCopied(null), 2000);
     } catch (error) {
-      console.error("Failed to copy:", error);
+      console.error("Failed to copy HTML:", error);
     }
   };
 
+  // Copy single field
+  const handleCopy = async (label, value) => {
+    try {
+      await navigator.clipboard.writeText(value || "");
+      setCopied(label);
+      setTimeout(() => setCopied(null), 1500);
+    } catch (error) {
+      console.error("Copy failed:", error);
+    }
+  };
+
+  const fields = [
+    { id: "subject", label: "Email Subject", value: subject, setter: setSubject },
+    { id: "headline", label: "Headline", value: headline, setter: setHeadline },
+    { id: "caption", label: "Image Caption", value: caption, setter: setCaption },
+    { id: "cta", label: "Call to Action (Button Text)", value: cta, setter: setCta },
+    { id: "point1", label: "Point 1 Title", value: point1, setter: setPoint1 },
+    { id: "description1", label: "Point 1 Description", value: description1, setter: setDescription1 },
+    { id: "point2", label: "Point 2 Title", value: point2, setter: setPoint2 },
+    { id: "description2", label: "Point 2 Description", value: description2, setter: setDescription2 },
+  ];
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h3 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
           <Mail className="w-5 h-5 text-purple-600" />
           Newsletter Content
+          {showSaved && (
+            <span className="text-green-600 text-sm font-medium ml-2">Saved</span>
+          )}
         </h3>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={copyHtml} disabled={!subject || !body}>
-            {copied ? (
-              <>
-                <Check className="w-4 h-4 mr-2 text-green-600" />
-                <span className="text-green-600">Copied!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-4 h-4 mr-2" />
-                Copy HTML
-              </>
-            )}
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            {isSaving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="w-4 h-4 mr-2" />
-                Save
-              </>
-            )}
-          </Button>
-        </div>
+        <Button variant="outline" onClick={copyHtml} disabled={!subject || !body}>
+          {copied === "html" ? (
+            <>
+              <Check className="w-4 h-4 mr-2 text-green-600" />
+              <span className="text-green-600">Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy className="w-4 h-4 mr-2" />
+              Copy HTML
+            </>
+          )}
+        </Button>
       </div>
 
+      {/* Main Layout */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Input Fields */}
+        {/* Left: Inputs */}
         <Card className="shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Email Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {[
-              { id: "subject", label: "Email Subject", value: subject, setter: setSubject },
-              { id: "headline", label: "Headline", value: headline, setter: setHeadline },
-              { id: "caption", label: "Image Caption", value: caption, setter: setCaption },
-              { id: "cta", label: "Call to Action (Button Text)", value: cta, setter: setCta },
-              { id: "point1", label: "Point 1 Title", value: point1, setter: setPoint1 },
-              { id: "description1", label: "Point 1 Description", value: description1, setter: setDescription1 },
-              { id: "point2", label: "Point 2 Title", value: point2, setter: setPoint2 },
-              { id: "description2", label: "Point 2 Description", value: description2, setter: setDescription2 },
-            ].map(({ id, label, value, setter }) => (
+            {fields.map(({ id, label, value, setter }) => (
               <div key={id}>
-                <Label htmlFor={id}>{label}</Label>
+                <div className="flex justify-between items-center mb-1">
+                  <Label htmlFor={id}>{label}</Label>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-sm text-gray-600 hover:text-purple-600"
+                    onClick={() => handleCopy(label, value)}
+                  >
+                    {copied === label ? (
+                      <>
+                        <Check className="w-4 h-4 mr-1 text-green-600" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-4 h-4 mr-1" /> Copy
+                      </>
+                    )}
+                  </Button>
+                </div>
                 <Input
                   id={id}
                   value={value}
-                  onChange={(e) => setter(e.target.value)}
+                  onChange={handleChange(setter)}
                   placeholder={`Enter ${label.toLowerCase()}`}
                 />
               </div>
@@ -196,7 +214,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
           </CardContent>
         </Card>
 
-        {/* Preview */}
+        {/* Right: Live Preview */}
         <Card className="shadow-sm">
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Live Preview</CardTitle>

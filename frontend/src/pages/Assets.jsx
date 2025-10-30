@@ -7,18 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { 
+  Collapsible, 
+  CollapsibleContent, 
+  CollapsibleTrigger 
+} from "@/components/ui/collapsible";
 import { 
   ChevronDown, 
   ChevronUp, 
   Search, 
-  Calendar,
-  Target,
-  Sparkles,
-  Filter,
-  Trash2,
-  X
+  Calendar, 
+  Target, 
+  Sparkles, 
+  Filter, 
+  Trash2, 
+  X 
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
@@ -29,13 +32,38 @@ import DeleteConfirmationDialog from "../components/assets/DeleteConfirmationDia
 export default function Assets() {
   const navigate = useNavigate();
   const [campaigns, setCampaigns] = useState([]);
-  const [assetSets, setAssetSets] = useState({}); 
+  const [assetSets, setAssetSets] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [openAccordions, setOpenAccordions] = useState(new Set());
   const [isLoading, setIsLoading] = useState(true);
   const [deleteDialog, setDeleteDialog] = useState({ isOpen: false, campaign: null });
+
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      try {
+        const hasIncomplete = campaigns.some(
+          (c) => c.status !== "completed"
+        );
+
+        if (!hasIncomplete) {
+          clearInterval(interval);
+          return;
+        }
+
+        const campaignData = await Campaign.getState().list("createdAt");
+        const sortedCampaigns = campaignData.sort(
+          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+        );
+        setCampaigns(sortedCampaigns);
+      } catch (error) {
+        console.error("Error checking campaign status:", error);
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [campaigns]);
 
   useEffect(() => {
     loadData();
@@ -45,17 +73,20 @@ export default function Assets() {
     setIsLoading(true);
     try {
       const [campaignData, assetData] = await Promise.all([
-        Campaign.getState().list('createdAt'),
-        AssetSet.getState().list('createdAt')
+        Campaign.getState().list("createdAt"),
+        AssetSet.getState().list("createdAt"),
       ]);
-      setCampaigns(campaignData);
-      
+
+      const sortedCampaigns = campaignData.sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+      setCampaigns(sortedCampaigns);
+
       const assetsMap = assetData.reduce((acc, asset) => {
         acc[asset.campaign_id] = asset;
         return acc;
       }, {});
       setAssetSets(assetsMap);
-
     } catch (error) {
       console.error("Error loading data:", error);
     }
@@ -64,27 +95,26 @@ export default function Assets() {
 
   const handleDeleteCampaign = async (campaign) => {
     try {
-      // Delete associated asset set first
       const assetSet = assetSets[campaign._id];
       if (assetSet) {
         await AssetSet.getState().delete(assetSet._id);
       }
       await Campaign.getState().delete(campaign._id);
-      setCampaigns(prev => prev.filter(c => c._id !== campaign._id));
-      setAssetSets(prev => {
+      setCampaigns((prev) => prev.filter((c) => c._id !== campaign._id));
+      setAssetSets((prev) => {
         const updated = { ...prev };
         delete updated[campaign._id];
         return updated;
       });
-      
+
       setDeleteDialog({ isOpen: false, campaign: null });
     } catch (error) {
       console.error("Error deleting campaign:", error);
     }
   };
-  
+
   const toggleAccordion = (campaignId) => {
-    setOpenAccordions(prev => {
+    setOpenAccordions((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(campaignId)) {
         newSet.delete(campaignId);
@@ -100,14 +130,16 @@ export default function Assets() {
     setDateFilter("");
   };
 
-  const filteredCampaigns = campaigns.filter(campaign => {
-    const matchesSearch = !searchQuery || 
+  const filteredCampaigns = campaigns.filter((campaign) => {
+    const matchesSearch =
+      !searchQuery ||
       campaign.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       campaign.theme.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesDate = !dateFilter || 
-      format(new Date(campaign.createdAt), 'yyyy-MM-dd') === dateFilter;
-    
+
+    const matchesDate =
+      !dateFilter ||
+      format(new Date(campaign.createdAt), "yyyy-MM-dd") === dateFilter;
+
     return matchesSearch && matchesDate;
   });
 
@@ -118,9 +150,11 @@ export default function Assets() {
           <div className="animate-pulse space-y-6">
             <div className="h-8 bg-gray-200 rounded-lg w-1/3"></div>
             <div className="h-12 bg-gray-200 rounded-lg"></div>
-            {Array(3).fill(0).map((_, i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>
-            ))}
+            {Array(3)
+              .fill(0)
+              .map((_, i) => (
+                <div key={i} className="h-32 bg-gray-200 rounded-xl"></div>
+              ))}
           </div>
         </div>
       </div>
@@ -134,9 +168,12 @@ export default function Assets() {
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-900 via-purple-800 to-pink-800 bg-clip-text text-transparent mb-4">
             Your Marketing Assets
           </h1>
-          <p className="text-gray-600 text-lg">Manage and download your generated marketing materials</p>
+          <p className="text-gray-600 text-lg">
+            Manage and download your generated marketing materials
+          </p>
         </div>
 
+        {/* Search and Filter */}
         <div className="mb-8 space-y-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -148,8 +185,8 @@ export default function Assets() {
                 className="pl-10 h-12 bg-white/80 backdrop-blur-sm border-gray-200/60"
               />
             </div>
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="gap-2 h-12"
               onClick={() => setShowFilters(!showFilters)}
             >
@@ -158,7 +195,7 @@ export default function Assets() {
             </Button>
           </div>
 
-          {/* Filters Panel */}
+          {/* Filter Panel */}
           <AnimatePresence>
             {showFilters && (
               <motion.div
@@ -181,8 +218,8 @@ export default function Assets() {
                     />
                   </div>
                   <div className="flex gap-2">
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={clearFilters}
                       disabled={!searchQuery && !dateFilter}
@@ -190,8 +227,8 @@ export default function Assets() {
                       <X className="w-4 h-4 mr-1" />
                       Clear
                     </Button>
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       size="sm"
                       onClick={() => setShowFilters(false)}
                     >
@@ -199,21 +236,12 @@ export default function Assets() {
                     </Button>
                   </div>
                 </div>
-                
-                {(searchQuery || dateFilter) && (
-                  <div className="mt-3 pt-3 border-t border-gray-200/60">
-                    <p className="text-sm text-gray-600">
-                      {filteredCampaigns.length} campaign{filteredCampaigns.length !== 1 ? 's' : ''} found
-                      {searchQuery && ` matching "${searchQuery}"`}
-                      {dateFilter && ` from ${format(new Date(dateFilter), 'MMM d, yyyy')}`}
-                    </p>
-                  </div>
-                )}
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
+        {/* Campaign Cards */}
         <div className="space-y-4">
           <AnimatePresence>
             {filteredCampaigns.length === 0 ? (
@@ -226,16 +254,17 @@ export default function Assets() {
                   <Sparkles className="w-12 h-12 text-white" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                  {campaigns.length === 0 ? "No campaigns yet" : "No campaigns match your filters"}
+                  {campaigns.length === 0
+                    ? "No campaigns yet"
+                    : "No campaigns match your filters"}
                 </h3>
                 <p className="text-gray-600 mb-6">
-                  {campaigns.length === 0 
+                  {campaigns.length === 0
                     ? "Start by generating your first marketing asset set"
-                    : "Try adjusting your search or date filters"
-                  }
+                    : "Try adjusting your search or date filters"}
                 </p>
                 {campaigns.length === 0 && (
-                  <Button 
+                  <Button
                     onClick={() => navigate(createPageUrl("Generate"))}
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                   >
@@ -248,44 +277,82 @@ export default function Assets() {
               filteredCampaigns.map((campaign) => {
                 const assetSet = assetSets[campaign._id];
                 const isOpen = openAccordions.has(campaign._id);
-                
+                const isCompleted = campaign.status === "completed";
+
                 return (
                   <motion.div
-                    key={campaign.id}
+                    key={campaign._id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                   >
-                    <Collapsible open={isOpen} onOpenChange={() => toggleAccordion(campaign._id)}>
-                      <Card className="border-none shadow-lg bg-white/80 backdrop-blur-sm overflow-hidden">
+                    <Collapsible
+                      open={isCompleted ? isOpen : false}
+                      onOpenChange={() => {
+                        if (isCompleted) toggleAccordion(campaign._id);
+                      }}
+                    >
+                      <Card
+                        className={`border-none shadow-lg overflow-hidden transition-all duration-200 ${
+                          isCompleted
+                            ? "bg-white/80 backdrop-blur-sm"
+                            : "bg-gray-100 opacity-80"
+                        }`}
+                      >
                         <CollapsibleTrigger asChild>
-                          <CardHeader className="cursor-pointer hover:bg-gray-50/80 transition-colors duration-200 p-6">
+                          <CardHeader
+                            className={`p-6 transition-colors duration-200 ${
+                              isCompleted
+                                ? "cursor-pointer hover:bg-gray-50/80"
+                                : ""
+                            }`}
+                          >
                             <div className="flex items-center justify-between">
                               <div className="flex items-start gap-4">
-                                <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-md">
+                                <div
+                                  className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${
+                                    isCompleted
+                                      ? "bg-gradient-to-r from-purple-500 to-pink-500"
+                                      : "bg-gray-400"
+                                  }`}
+                                >
                                   <Sparkles className="w-6 h-6 text-white" />
                                 </div>
                                 <div>
-                                  <CardTitle className="text-xl text-gray-900 mb-2">{campaign.name}</CardTitle>
+                                  <CardTitle className="text-xl text-gray-900 mb-2">
+                                    {campaign.name}
+                                  </CardTitle>
                                   <div className="flex flex-wrap gap-2 mb-3">
-                                    <Badge className="bg-purple-100 text-purple-700 border-purple-200">
+                                    <Badge
+                                      className={`border-purple-200 ${
+                                        isCompleted
+                                          ? "bg-purple-100 text-purple-700"
+                                          : "bg-gray-200 text-gray-500"
+                                      }`}
+                                    >
                                       {campaign.theme}
                                     </Badge>
                                     <Badge variant="outline" className="text-gray-600">
                                       <Calendar className="w-3 h-3 mr-1" />
-                                      {format(new Date(campaign.createdAt), 'MMM d, yyyy')}
+                                      {format(new Date(campaign.createdAt), "MMM d, yyyy")}
                                     </Badge>
                                   </div>
                                   {campaign.target_audience && (
-                                    <div className="flex flex-wrap gap-1">
-                                      <Badge variant="secondary" className="text-xs">
-                                        <Target className="w-2 h-2 mr-1" />
-                                        {campaign.target_audience}
-                                      </Badge>
-                                    </div>
+                                    <Badge
+                                      variant="secondary"
+                                      className={`text-xs ${
+                                        !isCompleted
+                                          ? "bg-gray-200 text-gray-500"
+                                          : ""
+                                      }`}
+                                    >
+                                      <Target className="w-2 h-2 mr-1" />
+                                      {campaign.target_audience}
+                                    </Badge>
                                   )}
                                 </div>
                               </div>
+
                               <div className="flex items-center gap-2">
                                 <Button
                                   variant="ghost"
@@ -298,26 +365,39 @@ export default function Assets() {
                                 >
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
+
                                 <div className="text-gray-400">
-                                  {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                                  {isCompleted ? (
+                                    isOpen ? (
+                                      <ChevronUp className="w-5 h-5" />
+                                    ) : (
+                                      <ChevronDown className="w-5 h-5" />
+                                    )
+                                  ) : (
+                                    <X className="w-5 h-5 opacity-50" />
+                                  )}
                                 </div>
                               </div>
                             </div>
                           </CardHeader>
                         </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          {assetSet && (
-                            <AssetAccordion 
-                              assetSet={assetSet}
-                              onUpdateAssetSet={(updatedAssetSet) => {
-                                setAssetSets(prev => ({
-                                  ...prev,
-                                  [updatedAssetSet.campaign_id]: updatedAssetSet,
-                                }));
-                              }}
-                            />                          
-                          )}
-                        </CollapsibleContent>
+
+                        {isCompleted && (
+                          <CollapsibleContent>
+                            {assetSet && (
+                              <AssetAccordion
+                                assetSet={assetSet}
+                                onUpdateAssetSet={(updatedAssetSet) => {
+                                  setAssetSets((prev) => ({
+                                    ...prev,
+                                    [updatedAssetSet.campaign_id]:
+                                      updatedAssetSet,
+                                  }));
+                                }}
+                              />
+                            )}
+                          </CollapsibleContent>
+                        )}
                       </Card>
                     </Collapsible>
                   </motion.div>
@@ -327,6 +407,7 @@ export default function Assets() {
           </AnimatePresence>
         </div>
 
+        {/* Delete Dialog */}
         <DeleteConfirmationDialog
           isOpen={deleteDialog.isOpen}
           onClose={() => setDeleteDialog({ isOpen: false, campaign: null })}
