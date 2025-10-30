@@ -250,8 +250,18 @@ export default function Assets() {
                 animate={{ opacity: 1 }}
                 className="text-center py-16"
               >
-                <div className="w-24 h-24 mx-auto mb-6 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-                  <Sparkles className="w-12 h-12 text-white" />
+                <div
+                  className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${
+                    isCompleted
+                      ? "bg-gradient-to-r from-purple-500 to-pink-500"
+                      : "bg-gray-400"
+                  }`}
+                >
+                  <Sparkles
+                    className={`w-6 h-6 text-white ${
+                      !isCompleted ? "slow-spin" : ""
+                    }`}
+                  />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {campaigns.length === 0
@@ -316,7 +326,9 @@ export default function Assets() {
                                       : "bg-gray-400"
                                   }`}
                                 >
-                                  <Sparkles className="w-6 h-6 text-white" />
+                                  <Sparkles
+                                    className={`w-6 h-6 text-white ${!isCompleted ? "slow-spin" : ""}`}
+                                  />
                                 </div>
                                 <div>
                                   <CardTitle className="text-xl text-gray-900 mb-2">
@@ -415,6 +427,21 @@ export default function Assets() {
           campaignName={deleteDialog.campaign?.name}
         />
       </div>
+
+      <style>{`
+        @keyframes slow-spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .slow-spin {
+          animation: slow-spin 4s linear infinite;
+        }
+      `}</style>
     </div>
   );
 }
