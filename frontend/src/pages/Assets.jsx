@@ -279,7 +279,7 @@ export default function Assets() {
                     className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                   >
                     <Sparkles className="w-4 h-4 mr-2" />
-                    Generate Assets
+                    New Campaign
                   </Button>
                 )}
               </motion.div>

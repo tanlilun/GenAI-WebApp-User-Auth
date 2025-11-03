@@ -11,16 +11,16 @@ import { motion } from "framer-motion";
 
 const BANK_PRODUCT = [
   "Credit Card",
-  "Financial Insurance",
   "Personal Loan",
-  "Savings Account",
+  "Housing Loan",
+  "Life Insurance",
 ];
 
 const AUDIENCE_OPTIONS = [
-  "Students (18-24 years old)",
-  "Young Professionals (25-35 years old)",
-  "Travel Enthusiasts",
-  "Empty Nesters",
+  { label: "Students", subLabel: "(18-24 years old)" },
+  { label: "Young Professionals", subLabel: "(25-35 years old)" },
+  { label: "Travel Enthusiasts", subLabel: "" },
+  { label: "Empty Nesters", subLabel: "" },
 ];
 
 const CAMPAIGN_THEMES = [
@@ -82,31 +82,38 @@ export default function Generate() {
       <Label className="text-base font-medium">{label}</Label>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {options.map((option) => {
-          const isDisabled = label === "Bank Product" && option !== "Credit Card";
+          const value = option.label || option;
+          const isDisabled = label === "Bank Product" && value !== "Credit Card";
 
           return (
             <button
-              key={option}
+              key={value}
               type="button"
               disabled={isDisabled}
               onClick={() =>
-                !isDisabled && setFormData({ ...formData, [field]: option })
+                !isDisabled && setFormData({ ...formData, [field]: value })
               }
-              className={`px-3 py-2 md:py-3 rounded-lg text-sm md:text-base font-medium border transition-all duration-200 ${
-                formData[field] === option
+              className={`px-3 py-2 md:py-3 rounded-lg text-sm md:text-base font-medium border transition-all duration-200 text-center ${
+                formData[field] === value
                   ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-md"
                   : isDisabled
                   ? "bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed"
                   : "bg-white hover:bg-purple-50 border-gray-300 text-gray-700"
               }`}
             >
-              {option}
+              <span className="block">{option.label || option}</span>
+              {option.subLabel && (
+                <span className="block text-xs text-gray-500">
+                  {option.subLabel}
+                </span>
+              )}
             </button>
           );
         })}
       </div>
     </div>
   );
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-pink-50/30 p-6 md:p-8">

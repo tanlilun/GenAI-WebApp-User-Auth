@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import SettingsModal from "../components/layout/SettingsModal";
+import logo from "@/components/img/logo.png";
 
 const navigationItems = [
   {
@@ -73,7 +74,19 @@ export default function Layout({ children, currentPageName }) {
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-50 to-blue-50/30">
         <Sidebar className="border-r border-gray-200/60 bg-white/90 backdrop-blur-sm">
-          <SidebarHeader className="border-b border-gray-200/60 p-6">
+          <SidebarHeader className="border-b border-gray-200/60 p-6 space-y-4">
+            {/* Client logo section */}
+            <div className="flex justify-center">
+              <div className="relative w-full flex justify-center">
+                <img
+                  src={user?.clientLogo || logo} // fallback image
+                  alt="Client Logo"
+                  className="max-h-16 max-w-full object-contain rounded-md"
+                />
+              </div>
+            </div>
+
+            {/* MarketingAI branding section */}
             <Link to={createPageUrl("Home")}>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 rounded-xl flex items-center justify-center shadow-lg">

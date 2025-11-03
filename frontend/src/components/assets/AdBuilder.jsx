@@ -71,20 +71,21 @@ export default function AdBuilder({ assetSet, onUpdateAssetSet }) {
       </div>
 
       <Tabs defaultValue="leaderboard" className="space-y-4">
-        <TabsList className="grid grid-cols-3 bg-white shadow-sm">
+        <TabsList className="grid grid-cols-3 bg-white shadow-sm h-16">
           {adFormats.map((format) => (
             <TabsTrigger
               key={format.key}
               value={format.key}
-              className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700"
+              className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-700 h-full flex flex-col items-center justify-center"
             >
-              <div className="text-center">
+              <div className="text-center leading-tight">
                 <div className="font-medium">{format.name}</div>
                 <div className="text-xs text-gray-500">{format.size}</div>
               </div>
             </TabsTrigger>
           ))}
         </TabsList>
+
 
         {adFormats.map((format) => (
           <TabsContent key={format.key} value={format.key} className="space-y-4">
