@@ -6,6 +6,7 @@ import { useAuthStore } from "../store/authStore";
 import { 
   Home, 
   Layers, 
+  Box,
   Settings, 
   LogOut, 
   Sparkles,
@@ -47,6 +48,11 @@ const navigationItems = [
     title: "Assets",
     url: createPageUrl("Assets"),
     icon: Layers,
+  },
+  {
+    title: "Create",
+    url: createPageUrl("Generate"),
+    icon: Box,
   },
 ];
 

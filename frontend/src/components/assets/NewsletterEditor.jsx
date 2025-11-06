@@ -22,17 +22,15 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
   const [body, setBody] = useState(newsletter.body || "");
 
   const [isSaving, setIsSaving] = useState(false);
-  const [copied, setCopied] = useState(null); // which field was copied
+  const [copied, setCopied] = useState(null);
   const [showSaved, setShowSaved] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
 
-  // handle input
   const handleChange = (setter) => (e) => {
     setter(e.target.value);
     setIsDirty(true);
   };
 
-  // Generate email body preview
   useEffect(() => {
     const generatedHTML = `
     <!DOCTYPE html>
@@ -77,7 +75,6 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
     setBody(generatedHTML.trim());
   }, [headline, selectedImageUrl, caption, cta, point1, description1, point2, description2]);
 
-  // Auto-save when editing stops
   const saveNewsletter = useCallback(async () => {
     if (!isDirty) return;
     setIsSaving(true);
@@ -113,7 +110,6 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
     return () => clearTimeout(timeout);
   }, [isDirty, saveNewsletter]);
 
-  // Copy full HTML
   const copyHtml = async () => {
     try {
       const htmlContent = `Subject: ${subject}\n\n${body}`;
@@ -125,7 +121,6 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
     }
   };
 
-  // Copy single field
   const handleCopy = async (label, value) => {
     try {
       await navigator.clipboard.writeText(value || "");
@@ -181,36 +176,50 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
             <CardTitle className="text-lg">Email Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {fields.map(({ id, label, value, setter }) => (
-              <div key={id}>
-                <div className="flex justify-between items-center mb-1">
-                  <Label htmlFor={id}>{label}</Label>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="text-sm text-gray-600 hover:text-purple-600"
-                    onClick={() => handleCopy(label, value)}
-                  >
-                    {copied === label ? (
-                      <>
-                        <Check className="w-4 h-4 mr-1 text-green-600" />
-                        Copied
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="w-4 h-4 mr-1" /> Copy
-                      </>
-                    )}
-                  </Button>
+            {fields.map(({ id, label, value, setter }, index) => {
+              const extraSpacing =
+                id === "subject" ? "mb-6" :
+                id === "cta" ? "mb-6" : "";
+
+              const extraLabel =
+                id === "headline" ? (
+                  <Label className="block text-lg font-medium mb-1 mt-4">Email Header</Label>
+                ) : id === "point1" ? (
+                  <Label className="block text-lg font-medium mb-1 mt-6">Email Body</Label>
+                ) : null;
+
+              return (
+                <div key={id} className={extraSpacing}>
+                  {extraLabel}
+                  <div className="flex justify-between items-center mb-1">
+                    <Label htmlFor={id}>{label}</Label>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-sm text-gray-600 hover:text-purple-600"
+                      onClick={() => handleCopy(label, value)}
+                    >
+                      {copied === label ? (
+                        <>
+                          <Check className="w-4 h-4 mr-1 text-green-600" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4 mr-1" /> Copy
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                  <Input
+                    id={id}
+                    value={value}
+                    onChange={handleChange(setter)}
+                    placeholder={`Enter ${label.toLowerCase()}`}
+                  />
                 </div>
-                <Input
-                  id={id}
-                  value={value}
-                  onChange={handleChange(setter)}
-                  placeholder={`Enter ${label.toLowerCase()}`}
-                />
-              </div>
-            ))}
+              );
+            })}
           </CardContent>
         </Card>
 
@@ -219,14 +228,24 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
           <CardHeader className="pb-4">
             <CardTitle className="text-lg">Live Preview</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="border rounded-lg p-4 bg-white h-[600px] overflow-y-auto">
-              <iframe
-                title="email-preview"
-                srcDoc={body}
-                style={{ width: "100%", height: "100%", border: "none" }}
-              />
-            </div>
+          <CardContent className="p-0">
+            <iframe
+              id="email-preview"
+              title="email-preview"
+              srcDoc={body}
+              style={{
+                width: "100%",
+                border: "none",
+                backgroundColor: "white",
+              }}
+              onLoad={(e) => {
+                const iframe = e.target;
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                if (iframeDoc) {
+                  iframe.style.height = iframeDoc.body.scrollHeight + "px";
+                }
+              }}
+            />
           </CardContent>
         </Card>
       </div>
