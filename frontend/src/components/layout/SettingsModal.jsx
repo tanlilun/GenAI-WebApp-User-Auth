@@ -1,41 +1,70 @@
 import React, { useState, useEffect } from "react";
-// import { User } from "@/api/entities";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save, User as UserIcon, Settings, Palette, Languages } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Save,
+  User as UserIcon,
+  Settings,
+  Palette,
+  Languages,
+} from "lucide-react";
+
+import {useProfileStore} from "@/store/userProfile";
 
 export default function SettingsModal({ isOpen, onOpenChange, user: initialUser }) {
-  const [user, setUser] = useState(initialUser);
-  const [formData, setFormData] = useState({});
-  const [isSaving, setIsSaving] = useState(false);
+  const { updateProfile, isLoading, message, error } = useProfileStore();
+
+  const [formData, setFormData] = useState({
+    name: "",
+    company: "",
+    jobTitle: "",
+    phone: "",
+    bio: "",
+  });
   const [theme, setTheme] = useState("system");
   const [language, setLanguage] = useState("en");
 
   useEffect(() => {
-    setUser(initialUser);
-    setFormData({
-      name: initialUser.name || "",
-      company: initialUser.company || "",
-      job_title: initialUser.job_title || "",
-      phone: initialUser.phone || "",
-      bio: initialUser.bio || ""
-    });
+    if (initialUser) {
+      setFormData({
+        name: initialUser.name || "",
+        company: initialUser.company || "",
+        jobTitle: initialUser.jobTitle || "",
+        phone: initialUser.phone || "",
+        bio: initialUser.bio || "",
+      });
+    }
   }, [initialUser, isOpen]);
 
   const handleSave = async () => {
-    setIsSaving(true);
     try {
-      await user.updateMyUserData(formData);
-      // You might want a way to refresh the user data in the layout here
-    } catch (error) {
-      console.error("Error saving profile:", error);
+      await updateProfile(formData); // call the zustand update function
+      onOpenChange(false);
+      window.location.reload();
+    } catch (err) {
+      console.error("Error saving profile:", err);
     }
-    setIsSaving(false);
-    onOpenChange(false);
   };
 
   return (
@@ -47,6 +76,7 @@ export default function SettingsModal({ isOpen, onOpenChange, user: initialUser 
             Settings
           </DialogTitle>
         </DialogHeader>
+
         <Tabs defaultValue="general" className="w-full pt-4">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="general">
@@ -58,6 +88,8 @@ export default function SettingsModal({ isOpen, onOpenChange, user: initialUser 
               Account
             </TabsTrigger>
           </TabsList>
+
+          {/* General tab */}
           <TabsContent value="general" className="pt-6">
             <div className="space-y-6">
               <div className="space-y-2">
@@ -76,6 +108,7 @@ export default function SettingsModal({ isOpen, onOpenChange, user: initialUser 
                   </SelectContent>
                 </Select>
               </div>
+
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
                   <Languages className="w-4 h-4" />
@@ -93,22 +126,88 @@ export default function SettingsModal({ isOpen, onOpenChange, user: initialUser 
               </div>
             </div>
           </TabsContent>
+
+          {/* Account tab */}
           <TabsContent value="account" className="pt-6">
             <div className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2"><Label htmlFor="name">Full Name</Label><Input id="name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} /></div>
-                <div className="space-y-2"><Label htmlFor="company">Company</Label><Input id="company" value={formData.company} onChange={(e) => setFormData({...formData, company: e.target.value})} placeholder="Your company name"/></div>
-                <div className="space-y-2"><Label htmlFor="job_title">Job Title</Label><Input id="job_title" value={formData.job_title} onChange={(e) => setFormData({...formData, job_title: e.target.value})} placeholder="Marketing Manager, etc."/></div>
-                <div className="space-y-2"><Label htmlFor="phone">Phone</Label><Input id="phone" value={formData.phone} onChange={(e) => setFormData({...formData, phone: e.target.value})} placeholder="Your phone number"/></div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="company">Company</Label>
+                  <Input
+                    id="company"
+                    value={formData.company}
+                    onChange={(e) =>
+                      setFormData({ ...formData, company: e.target.value })
+                    }
+                    placeholder="Your company name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="jobTitle">Job Title</Label>
+                  <Input
+                    id="jobTitle"
+                    value={formData.jobTitle}
+                    onChange={(e) =>
+                      setFormData({ ...formData, jobTitle: e.target.value })
+                    }
+                    placeholder="Marketing Manager, etc."
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    placeholder="Your phone number"
+                  />
+                </div>
               </div>
+
               <div className="space-y-2">
                 <Label htmlFor="bio">Bio</Label>
-                <textarea id="bio" value={formData.bio} onChange={(e) => setFormData({...formData, bio: e.target.value})} rows={3} placeholder="Tell us about yourself..." className="w-full px-3 py-2 border border-gray-200 rounded-md"/>
+                <textarea
+                  id="bio"
+                  value={formData.bio}
+                  onChange={(e) =>
+                    setFormData({ ...formData, bio: e.target.value })
+                  }
+                  rows={3}
+                  placeholder="Tell us about yourself..."
+                  className="w-full px-3 py-2 border border-gray-200 rounded-md"
+                />
               </div>
+
               <DialogFooter>
-                <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-                <Button onClick={handleSave} disabled={isSaving} className="bg-purple-600 hover:bg-purple-700 text-white">
-                  {isSaving ? 'Saving...' : <><Save className="w-4 h-4 mr-2" />Save Changes</>}
+                <Button variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSave}
+                  disabled={isLoading}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  {isLoading ? "Saving..." : (
+                    <>
+                      <Save className="w-4 h-4 mr-2" />
+                      Save Changes
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </div>

@@ -9,6 +9,7 @@ import { connectDB } from "./db/connectDB.js";
 import authRoutes from "./routes/auth.route.js";
 import campaignRoutes from './routes/campaign.routes.js';
 import assetRoutes from './routes/asset.routes.js';
+import profileRoutes from './routes/profile.route.js';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use(cookieParser()); // allows us to parse incoming cookies
 app.use("/api/auth", authRoutes);
 app.use("/api/campaign", campaignRoutes);
 app.use("/api/asset", assetRoutes);
+app.use("/api/profile", profileRoutes);
 
 console.log(process.env.NODE_ENV);
 
