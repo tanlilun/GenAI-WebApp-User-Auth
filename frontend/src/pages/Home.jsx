@@ -105,8 +105,8 @@ export default function Home() {
             transition={{ duration: 0.4 }}
             className="w-full flex justify-center"
           >
-            <div className="w-full max-w-5xl">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-4 text-left">
+            <div className="w-full max-w-5xl text-left"> {/* <-- added text-left here */}
+              <h2 className="text-2xl font-semibold text-gray-800 mb-4">
                 Last Campaign Generated:
               </h2>
 
@@ -117,7 +117,7 @@ export default function Home() {
                       <Sparkles className="w-6 h-6 text-white" />
                     </div>
                     <div className="flex-1">
-                      <CardTitle className="text-xl text-gray-900 mb-2 text-left">
+                      <CardTitle className="text-xl text-gray-900 mb-2">
                         {latestCampaign.name}
                       </CardTitle>
                       <div className="flex flex-wrap gap-2 mb-3">

@@ -77,12 +77,12 @@ export default function SettingsModal({ isOpen, onOpenChange, user: initialUser 
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs defaultValue="general" className="w-full pt-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="general">
+        <Tabs defaultValue="account" className="w-full pt-4">
+          <TabsList className="grid w-full grid-cols-1">
+            {/* <TabsTrigger value="general">
               <Palette className="w-4 h-4 mr-2" />
               General
-            </TabsTrigger>
+            </TabsTrigger> */}
             <TabsTrigger value="account">
               <UserIcon className="w-4 h-4 mr-2" />
               Account
@@ -90,7 +90,7 @@ export default function SettingsModal({ isOpen, onOpenChange, user: initialUser 
           </TabsList>
 
           {/* General tab */}
-          <TabsContent value="general" className="pt-6">
+          {/* <TabsContent value="general" className="pt-6">
             <div className="space-y-6">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
@@ -125,7 +125,7 @@ export default function SettingsModal({ isOpen, onOpenChange, user: initialUser 
                 </Select>
               </div>
             </div>
-          </TabsContent>
+          </TabsContent> */}
 
           {/* Account tab */}
           <TabsContent value="account" className="pt-6">
