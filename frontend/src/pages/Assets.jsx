@@ -250,19 +250,11 @@ export default function Assets() {
                 animate={{ opacity: 1 }}
                 className="text-center py-16"
               >
-                <div
-                  className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${
-                    isCompleted
-                      ? "bg-gradient-to-r from-purple-500 to-pink-500"
-                      : "bg-gray-400"
-                  }`}
+                {/* <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center shadow-md bg-gray-400"
                 >
-                  <Sparkles
-                    className={`w-6 h-6 text-white ${
-                      !isCompleted ? "slow-spin" : ""
-                    }`}
-                  />
-                </div>
+                  <Sparkles className="w-6 h-6 text-white slow-spin" />
+                </div> */}
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   {campaigns.length === 0
                     ? "No campaigns yet"

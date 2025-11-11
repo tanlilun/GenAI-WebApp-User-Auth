@@ -1,90 +1,119 @@
+import nodemailer from "nodemailer";
+import dotenv from "dotenv";
 import {
-	PASSWORD_RESET_REQUEST_TEMPLATE,
-	PASSWORD_RESET_SUCCESS_TEMPLATE,
-	VERIFICATION_EMAIL_TEMPLATE,
+  PASSWORD_RESET_REQUEST_TEMPLATE,
+  PASSWORD_RESET_SUCCESS_TEMPLATE,
+  VERIFICATION_EMAIL_TEMPLATE,
+  WELCOME_EMAIL_TEMPLATE,
 } from "./emailTemplates.js";
-import { mailtrapClient, sender } from "./mailtrap.config.js";
+
+dotenv.config();
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+const sender = {
+  email: "palettembmr@gmail.com",
+  name: "GenAI Technologies",
+};
+
+async function sendEmail({ to, subject, html, text }) {
+  try {
+    const info = await transporter.sendMail({
+      from: `"${sender.name}" <${sender.email}>`,
+      to,
+      subject,
+      text,
+      html,
+    });
+    console.log("Email sent:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    throw error;
+  }
+}
+
+// =====================================================
+// Replace Mailtrap functions below with Nodemailer
+// =====================================================
 
 export const sendVerificationEmail = async (email, verificationToken) => {
-	const recipient = [{ email }];
+  try {
 
-	try {
-		const response = await mailtrapClient.send({
-			from: sender,
-			to: recipient,
-			subject: "Verify your email",
-			html: VERIFICATION_EMAIL_TEMPLATE.replace("{verificationCode}", verificationToken),
-			category: "Email Verification",
-		});
+	let html = VERIFICATION_EMAIL_TEMPLATE
+		.replace("{company_product}", "GenAI Marketing")
+		.replace("{verificationCode}", verificationToken);
 
-		console.log("Email sent successfully", response);
-	} catch (error) {
-		console.error(`Error sending verification`, error);
-
-		throw new Error(`Error sending verification email: ${error}`);
-	}
+    await sendEmail({
+      to: email,
+      subject: "Verify your email",
+      html,
+      text: `Your verification code is: ${verificationToken}`,
+    });
+  } catch (error) {
+    throw new Error(`Error sending verification email: ${error.message}`);
+  }
 };
 
 export const sendWelcomeEmail = async (email, name) => {
-	const recipient = [{ email }];
+  try {
 
-	try {
-		const response = await mailtrapClient.send({
-			from: sender,
-			to: recipient,
-			template_uuid: "82dddf4b-ebe2-4f70-b7cb-4920caaad2af",
-			template_variables: {
-				company_info_name: "Faculty Technologies Sdn. Bhd.",
-				name: name,
-				company_info_address: "22-01, Menara MBMR, 1, Jln Syed Putra",
-				company_info_city: "Kuala Lumpur",
-				company_info_zip_code: "58000",
-				company_info_country: "Malaysia",
-			},
-		});
+    let html = WELCOME_EMAIL_TEMPLATE
+		.replace("{company_product}", "GenAI Marketing")
+		.replace("{company_info_name}", "Faculty Technologies Sdn. Bhd.")
+		.replace("{company_info_address}", "22-01, Menara MBMR, 1, Jln Syed Putra")
+		.replace("{company_info_city}", "Kuala Lumpur")
+		.replace("{company_info_zip_code}", "58000")
+		.replace("{company_info_country}", "Malaysia")
+		.replace("{name}", name);
 
-		console.log("Welcome email sent successfully", response);
-	} catch (error) {
-		console.error(`Error sending welcome email`, error);
-
-		throw new Error(`Error sending welcome email: ${error}`);
-	}
+    await sendEmail({
+      to: email,
+      subject: "Welcome to Our Service!",
+      html,
+      text: `Welcome ${name}!`,
+    });
+  } catch (error) {
+    throw new Error(`Error sending welcome email: ${error.message}`);
+  }
 };
 
+
 export const sendPasswordResetEmail = async (email, resetURL) => {
-	const recipient = [{ email }];
+	let html = PASSWORD_RESET_REQUEST_TEMPLATE
+		.replace("{resetURL}", resetURL)
+		.replace("{company_product}", "GenAI Marketing");
 
 	try {
-		const response = await mailtrapClient.send({
-			from: sender,
-			to: recipient,
-			subject: "Reset your password",
-			html: PASSWORD_RESET_REQUEST_TEMPLATE.replace("{resetURL}", resetURL),
-			category: "Password Reset",
+		await sendEmail({
+		to: email,
+		subject: "Reset your password",
+		html,
+		text: `Reset your password here: ${resetURL}`,
 		});
 	} catch (error) {
-		console.error(`Error sending password reset email`, error);
-
-		throw new Error(`Error sending password reset email: ${error}`);
+		throw new Error(`Error sending password reset email: ${error.message}`);
 	}
 };
 
 export const sendResetSuccessEmail = async (email) => {
-	const recipient = [{ email }];
+	let html = PASSWORD_RESET_SUCCESS_TEMPLATE
+		.replace("{company_product}", "GenAI Marketing");
 
 	try {
-		const response = await mailtrapClient.send({
-			from: sender,
-			to: recipient,
-			subject: "Password Reset Successful",
-			html: PASSWORD_RESET_SUCCESS_TEMPLATE,
-			category: "Password Reset",
+		await sendEmail({
+		to: email,
+		subject: "Password Reset Successful",
+		html,
+		text: "Your password has been reset successfully.",
 		});
-
-		console.log("Password reset email sent successfully", response);
 	} catch (error) {
-		console.error(`Error sending password reset success email`, error);
-
-		throw new Error(`Error sending password reset success email: ${error}`);
+		throw new Error(`Error sending password reset success email: ${error.message}`);
 	}
 };

@@ -45,11 +45,11 @@ const LoginPage = () => {
 						onChange={(e) => setPassword(e.target.value)}
 					/>
 
-					{/* <div className='flex items-center mb-6'>
+					<div className='flex items-center mb-6'>
 						<Link to='/forgot-password' className='text-sm text-green-400 hover:underline'>
 							Forgot password?
 						</Link>
-					</div> */}
+					</div>
 					{error && <p className='text-red-500 font-semibold mb-2'>{error}</p>}
 
 					<motion.button
@@ -63,14 +63,14 @@ const LoginPage = () => {
 					</motion.button>
 				</form>
 			</div>
-			{/* <div className='px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center'>
+			<div className='px-8 py-4 bg-gray-900 bg-opacity-50 flex justify-center'>
 				<p className='text-sm text-gray-400'>
 					Don't have an account?{" "}
 					<Link to='/signup' className='text-green-400 hover:underline'>
 						Sign up
 					</Link>
 				</p>
-			</div> */}
+			</div>
 		</motion.div>
 	);
 };

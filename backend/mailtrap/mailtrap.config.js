@@ -1,38 +1,39 @@
-// export const mailtrapClient = new MailtrapClient({
-// 	endpoint: process.env.MAILTRAP_ENDPOINT,
-// 	token: process.env.MAILTRAP_TOKEN,
-// });
-
-// export const sender = {
-// 	email: "mailtrap@demomailtrap.com",
-// 	name: "Burak",
-// };
-
-import { MailtrapClient } from "mailtrap";
+import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-export const mailtrapClient = new MailtrapClient({
-  token: process.env.MAILTRAP_TOKEN,
+// Create a transporter using SMTP
+export const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,      // e.g., "sandbox.smtp.mailtrap.io" or "smtp.gmail.com"
+  port: process.env.SMTP_PORT,      // e.g., 2525 for Mailtrap, 465 for SSL
+  auth: {
+    user: process.env.SMTP_USER,    // SMTP username
+    pass: process.env.SMTP_PASS,    // SMTP password
+  },
 });
 
+// Define your sender info
 export const sender = {
-  email: "hello@demomailtrap.co",
+  email: "hello@genai.co",
   name: "GenAI Technologies",
 };
-// const recipients = [
-//   {
-//     email: "lilun.tan@facultydigital.com",
-//   }
-// ];
 
-// client
-//   .send({
-//     from: sender,
-//     to: recipients,
-//     subject: "You are awesome!",
-//     text: "Congrats for sending test email with Mailtrap!",
-//     category: "Integration Test",
-//   })
-//   .then(console.log, console.error);
+// Example: function to send an email
+export async function sendEmail({ to, subject, text, html }) {
+  try {
+    const info = await transporter.sendMail({
+      from: `"${sender.name}" <${sender.email}>`,
+      to,            // can be a single email or array
+      subject,
+      text,
+      html,
+    });
+
+    console.log("Email sent:", info.messageId);
+    return info;
+  } catch (error) {
+    console.error("Error sending email:", error);
+    throw error;
+  }
+}
