@@ -13,6 +13,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
 
   const [subject, setSubject] = useState(newsletter.subject || "");
   const [headline, setHeadline] = useState(newsletter.headline || "");
+  const [logoUrl, setLogoUrl] = useState(newsletter.logoUrl || "https://ffnews.com/wp-content/uploads/2021/06/krugsri-.jpg");
   const [caption, setCaption] = useState(newsletter.caption || "");
   const [cta, setCta] = useState(newsletter.cta || "");
   const [point1, setPoint1] = useState(newsletter.point1 || "");
@@ -38,32 +39,46 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
       <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width" /></head>
       <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 0;">
         <div style="max-width: 600px; margin: 30px auto; background: #fff; padding: 20px; border-radius: 8px;">
-          <h1 style="color: #333;">${headline || ""}</h1>
+          <h1 style="color: #333; text-align: center;">${headline || ""}</h1>
+
           ${
-            selectedImageUrl
-              ? `<div style="margin: 16px 0;"><img src="${selectedImageUrl}" style="max-width: 100%; border-radius: 8px;" alt="Promotional image" />
-                <div style="font-size: 14px; color: #666; text-align: center;">${caption || ""}</div></div>`
-              : ""
-          }
-          ${
-            cta
-              ? `<div style="text-align: center; margin: 20px 0;">
-                  <a href="#" style="display: inline-block; background: #6c3cc9; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">${cta}</a>
+            logoUrl
+              ? `<div style="text-align: center; margin: 10px 0;">
+                  <img src="${logoUrl}" alt="Logo" style="max-width: 120px; height: auto;" />
                 </div>`
               : ""
           }
+
+          ${
+            selectedImageUrl
+              ? `<div style="text-align: center; margin: 16px 0;">
+                  <img src="${selectedImageUrl}" style="max-width: 100%; border-radius: 8px;" alt="Promotional image" />
+                  <div style="font-size: 14px; color: #666; text-align: center;">${caption || ""}</div>
+                </div>`
+              : ""
+          }
+
+          ${
+            cta
+              ? `<div style="text-align: center; margin: 20px 0;">
+                  <a href="#" style="display: inline-block; background: #fec24a; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">${cta}</a>
+                </div>`
+              : ""
+          }
+
           ${
             point1
               ? `<div style="margin-top: 20px;">
-                  <h3 style="color: #6c3cc9; margin: 0;">${point1}</h3>
+                  <h3 style="color: #fec24a; margin: 0;">${point1}</h3>
                   <p style="color: #444;">${description1 || ""}</p>
                 </div>`
               : ""
           }
+
           ${
             point2
               ? `<div style="margin-top: 20px;">
-                  <h3 style="color: #6c3cc9; margin: 0;">${point2}</h3>
+                  <h3 style="color: #fec24a; margin: 0;">${point2}</h3>
                   <p style="color: #444;">${description2 || ""}</p>
                 </div>`
               : ""
@@ -73,7 +88,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
     </html>
     `;
     setBody(generatedHTML.trim());
-  }, [headline, selectedImageUrl, caption, cta, point1, description1, point2, description2]);
+  }, [headline, logoUrl, selectedImageUrl, caption, cta, point1, description1, point2, description2]);
 
   const saveNewsletter = useCallback(async () => {
     if (!isDirty) return;
@@ -82,6 +97,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
       const updatedNewsletter = {
         subject,
         headline,
+        logoUrl,
         caption,
         cta,
         point1,
@@ -102,7 +118,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
     } finally {
       setIsSaving(false);
     }
-  }, [isDirty, subject, headline, caption, cta, point1, description1, point2, description2, body, assetSet, onUpdateAssetSet]);
+  }, [isDirty, subject, headline, logoUrl, caption, cta, point1, description1, point2, description2, body, assetSet, onUpdateAssetSet]);
 
   useEffect(() => {
     if (!isDirty) return;
@@ -134,6 +150,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
   const fields = [
     { id: "subject", label: "Email Subject", value: subject, setter: setSubject },
     { id: "headline", label: "Headline", value: headline, setter: setHeadline },
+    // { id: "logoUrl", label: "Logo Image URL", value: logoUrl, setter: setLogoUrl },
     { id: "caption", label: "Image Caption", value: caption, setter: setCaption },
     { id: "cta", label: "Call to Action (Button Text)", value: cta, setter: setCta },
     { id: "point1", label: "Point 1 Title", value: point1, setter: setPoint1 },
@@ -176,11 +193,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
             <CardTitle className="text-lg">Email Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {fields.map(({ id, label, value, setter }, index) => {
-              const extraSpacing =
-                id === "subject" ? "mb-6" :
-                id === "cta" ? "mb-6" : "";
-
+            {fields.map(({ id, label, value, setter }) => {
               const extraLabel =
                 id === "headline" ? (
                   <Label className="block text-lg font-medium mb-1 mt-4">Email Header</Label>
@@ -189,7 +202,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
                 ) : null;
 
               return (
-                <div key={id} className={extraSpacing}>
+                <div key={id}>
                   {extraLabel}
                   <div className="flex justify-between items-center mb-1">
                     <Label htmlFor={id}>{label}</Label>
