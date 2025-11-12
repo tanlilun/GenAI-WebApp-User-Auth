@@ -145,7 +145,9 @@ export default function VideoAdSection({ assetSet, onUpdateAssetSet }) {
                       <div className="absolute bottom-4 right-4 flex items-center space-x-2 z-10">
                         <img src={visalogo} alt="VISA" className="h-6 md:h-8" />
                         <img
-                          src={banklogo}
+                          // src={banklogo}
+                          // src="https://ffnews.com/wp-content/uploads/2021/06/krugsri-.jpg"
+                          src="https://play-lh.googleusercontent.com/QBIi36TIcm0gqESKCsElaJN-mMs844EMw009YbdvtXWmIWs0ZJT7YSwjyJE72QGk3Es"
                           alt="Partner Logo"
                           className="h-6 md:h-8"
                         />
