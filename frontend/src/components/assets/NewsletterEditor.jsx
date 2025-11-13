@@ -13,7 +13,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
 
   const [subject, setSubject] = useState(newsletter.subject || "");
   const [headline, setHeadline] = useState(newsletter.headline || "");
-  const [logoUrl, setLogoUrl] = useState(newsletter.logoUrl || "https://ffnews.com/wp-content/uploads/2021/06/krugsri-.jpg");
+  const [logoUrl, setLogoUrl] = useState(newsletter.logoUrl || "https://ev2gang.com/wp-content/uploads/2023/12/Bangkok-Insurance-logo-e1702925895954.png");
   const [caption, setCaption] = useState(newsletter.caption || "");
   const [cta, setCta] = useState(newsletter.cta || "");
   const [point1, setPoint1] = useState(newsletter.point1 || "");
@@ -44,7 +44,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
           ${
             logoUrl
               ? `<div style="text-align: center; margin: 10px 0;">
-                  <img src="${logoUrl}" alt="Logo" style="max-width: 120px; height: auto;" />
+                  <img src="${logoUrl}" alt="Logo" style="max-width: 240px; height: auto;" />
                 </div>`
               : ""
           }
@@ -61,7 +61,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
           ${
             cta
               ? `<div style="text-align: center; margin: 20px 0;">
-                  <a href="#" style="display: inline-block; background: #fec24a; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">${cta}</a>
+                  <a href="#" style="display: inline-block; background: #0f4495; color: white; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">${cta}</a>
                 </div>`
               : ""
           }
@@ -69,7 +69,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
           ${
             point1
               ? `<div style="margin-top: 20px;">
-                  <h3 style="color: #fec24a; margin: 0;">${point1}</h3>
+                  <h3 style="color: #0f4495; margin: 0;">${point1}</h3>
                   <p style="color: #444;">${description1 || ""}</p>
                 </div>`
               : ""
@@ -78,7 +78,7 @@ export default function NewsletterEditor({ assetSet, onUpdateAssetSet }) {
           ${
             point2
               ? `<div style="margin-top: 20px;">
-                  <h3 style="color: #fec24a; margin: 0;">${point2}</h3>
+                  <h3 style="color: #0f4495; margin: 0;">${point2}</h3>
                   <p style="color: #444;">${description2 || ""}</p>
                 </div>`
               : ""

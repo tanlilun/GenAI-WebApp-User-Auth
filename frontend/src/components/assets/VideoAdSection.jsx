@@ -147,7 +147,8 @@ export default function VideoAdSection({ assetSet, onUpdateAssetSet }) {
                         <img
                           // src={banklogo}
                           // src="https://ffnews.com/wp-content/uploads/2021/06/krugsri-.jpg"
-                          src="https://play-lh.googleusercontent.com/QBIi36TIcm0gqESKCsElaJN-mMs844EMw009YbdvtXWmIWs0ZJT7YSwjyJE72QGk3Es"
+                          // src="https://play-lh.googleusercontent.com/QBIi36TIcm0gqESKCsElaJN-mMs844EMw009YbdvtXWmIWs0ZJT7YSwjyJE72QGk3Es"
+                          src="https://media.licdn.com/dms/image/v2/C560BAQHdPa-3Li8OiA/company-logo_200_200/company-logo_200_200/0/1630666453766?e=2147483647&v=beta&t=RWahPSeXqCRAGikK9DjhI7jWg05dmCIOy0s3HcbgHOw"
                           alt="Partner Logo"
                           className="h-6 md:h-8"
                         />
