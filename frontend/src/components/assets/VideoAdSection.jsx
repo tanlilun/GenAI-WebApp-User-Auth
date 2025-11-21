@@ -15,6 +15,8 @@ export default function VideoAdSection({ assetSet, onUpdateAssetSet }) {
   const [isDirty, setIsDirty] = useState(false);
   const [showSaved, setShowSaved] = useState(false);
 
+  const logos = videoAd.logos || [visalogo, "https://play-lh.googleusercontent.com/QBIi36TIcm0gqESKCsElaJN-mMs844EMw009YbdvtXWmIWs0ZJT7YSwjyJE72QGk3Es"];
+
   // Copy overlay text
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text);
@@ -142,17 +144,18 @@ export default function VideoAdSection({ assetSet, onUpdateAssetSet }) {
                         </div>
                       )}
 
-                      <div className="absolute bottom-4 right-4 flex items-center space-x-2 z-10">
-                        {/* <img src={visalogo} alt="VISA" className="h-6 md:h-8" /> */}
-                        <img
-                          // src={banklogo}
-                          // src="https://ffnews.com/wp-content/uploads/2021/06/krugsri-.jpg"
-                          // src="https://play-lh.googleusercontent.com/QBIi36TIcm0gqESKCsElaJN-mMs844EMw009YbdvtXWmIWs0ZJT7YSwjyJE72QGk3Es"
-                          src="https://media.licdn.com/dms/image/v2/C560BAQHdPa-3Li8OiA/company-logo_200_200/company-logo_200_200/0/1630666453766?e=2147483647&v=beta&t=RWahPSeXqCRAGikK9DjhI7jWg05dmCIOy0s3HcbgHOw"
-                          alt="Partner Logo"
-                          className="h-6 md:h-8"
-                        />
-                      </div>
+                      {logos.length > 0 && (
+                        <div className="absolute bottom-4 right-4 flex items-center space-x-2 z-10">
+                          {logos.map((logoUrl, index) => (
+                            <img
+                              key={index}
+                              src={logoUrl}
+                              alt={`Logo ${index + 1}`}
+                              className="h-6 md:h-8 max-w-[80px] object-contain"
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <>
