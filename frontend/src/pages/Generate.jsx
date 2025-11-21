@@ -10,8 +10,8 @@ import { Sparkles, ArrowLeft, TrendingUp } from "lucide-react";
 import { motion } from "framer-motion";
 
 const BANK_PRODUCT = [
-  // "Credit Card",
-  "Bank Insurance",
+  "Credit Card",
+  // "Bank Insurance",
   "Personal Loan",
   "Housing Loan",
   "Life Insurance",
@@ -84,7 +84,7 @@ export default function Generate() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {options.map((option) => {
           const value = option.label || option;
-          const isDisabled = label === "Bank Product" && value !== "Bank Insurance";
+          const isDisabled = label === "Bank Product" && value !== "Credit Card";
 
           return (
             <button
